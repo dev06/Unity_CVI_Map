@@ -63,7 +63,16 @@ public class UserController : MonoBehaviour
   
   private Vector3 targetPosition, lastPosition; 
 
+  private List<string> dataLines = new List<string>(); 
+
+  private float recordDataTimer; 
+
+  private int csv_id; 
+
+
   void Start () {
+
+    dataLines.Add("id  ,  timestamp  ,  x  ,  y  ,  direction  ,  feedbacktype  ,  checkpoint"); 
 
     curwaypointindex = 1;
 
@@ -72,7 +81,6 @@ public class UserController : MonoBehaviour
     previousCheckpoint = path[curwaypointindex - 1]; 
 
     curWaypoint.Show(); 
-
 
     transform.position = path[0].transform.position; 
 
@@ -92,9 +100,9 @@ public class UserController : MonoBehaviour
 
 
     ShowPathToNextPoint(); 
-    
+
     StopCoroutine("IUpdateNorthOnDelay"); 
-    
+
     StartCoroutine("IUpdateNorthOnDelay"); 
 
   }
@@ -144,6 +152,32 @@ public class UserController : MonoBehaviour
     PlayVoice(); 
 
     VibrateWatches(); 
+
+    recordDataTimer+=Time.deltaTime; 
+
+    if(recordDataTimer > 1f)
+    {
+      string feedbacktype = "None"; //Ping
+
+      if (voiceToggle.isOn)
+      {
+        feedbacktype = "voice";
+      }
+      if (vibrationToggle.isOn)
+      {
+        feedbacktype = "vibrate";
+      }
+      if(pingToggle.isOn)
+      {
+        feedbacktype = "ping"; 
+      }
+
+      dataLines.Add(csv_id + "  ,  " + System.DateTime.Now + "  ,  " + transform.position.x + "  ,  " + transform.position.z + "  ,  " + UserRotation.GetRotation() + "  ,  " + feedbacktype + "  ,  " + curwaypointindex); 
+
+      csv_id++; 
+
+      recordDataTimer = 0; 
+    }
   }
 
   private void UpdatePCControls()
@@ -177,9 +211,9 @@ public class UserController : MonoBehaviour
   public void GetNextCheckpoint()
   {
     Vector3 offset = curWaypoint.transform.position - targetPosition;  
-    
+
    // targetPosition = targetPosition + (offset * .33f); 
-    
+
     //Vector3 dist = curWaypoint.transform.position - targetPosition; 
 
     if(offset.sqrMagnitude < targetDistance * 3f)
@@ -201,7 +235,7 @@ public class UserController : MonoBehaviour
   private void SetNextWaypoint()
   {
     curWaypoint.Hide(); 
-    
+
     previousCheckpoint = curWaypoint; 
 
     curwaypointindex++; 
@@ -210,16 +244,18 @@ public class UserController : MonoBehaviour
     {
 
       curwaypointindex = path.Length - 1; 
-      
+
       Debug.Log("Out of points"); 
-      
+
+      DataSaver.Save(dataLines); 
+
       voice.Stop(); 
     }
 
     curWaypoint = path[curwaypointindex]; 
-    
+
     pingTransform.transform.position = curWaypoint.transform.position; 
-    
+
     curWaypoint.Show(); 
 
     ShowPathToNextPoint(); 
@@ -238,7 +274,7 @@ public class UserController : MonoBehaviour
     for(int i = 0;i < Mathf.Ceil(Vector3.Distance(curWaypoint.transform.position,previousCheckpoint.transform.position) / targetDistance); i++)
     {
       GameObject c = Instantiate(miniCheckpointPrefab); 
-      
+
       Vector3 pos = curWaypoint.transform.position - previousCheckpoint.transform.position; 
 
       c.transform.position = previousCheckpoint.transform.position + pos * ((i + .5f) / 5f); 

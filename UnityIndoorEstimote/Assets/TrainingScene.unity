@@ -1856,7 +1856,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: Voice
+  m_Text: Voice - [ B ]
 --- !u!222 &432732363
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -1895,10 +1895,10 @@ RectTransform:
   m_Father: {fileID: 259273749}
   m_RootOrder: 2
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0.30444446, y: 0.5}
-  m_AnchorMax: {x: 0.6966667, y: 0.61}
-  m_AnchoredPosition: {x: -0.5, y: 0.34999084}
-  m_SizeDelta: {x: 2.5, y: 0.69999695}
+  m_AnchorMin: {x: 0.30444446, y: 0.19166665}
+  m_AnchorMax: {x: 0.6966667, y: 0.28333333}
+  m_AnchoredPosition: {x: -0.5, y: 0.5}
+  m_SizeDelta: {x: 2.5, y: 11.699997}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &437162839
 MonoBehaviour:
@@ -6373,7 +6373,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: Vibrate
+  m_Text: Vibrate - [ X ]
 --- !u!222 &1279021842
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -6447,7 +6447,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: Ping
+  m_Text: Ping - [ A ]
 --- !u!222 &1314655045
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -7418,10 +7418,10 @@ RectTransform:
   m_Father: {fileID: 259273749}
   m_RootOrder: 4
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0.30444446, y: 0.19166665}
-  m_AnchorMax: {x: 0.6966667, y: 0.305}
-  m_AnchoredPosition: {x: -0.49990845, y: 2}
-  m_SizeDelta: {x: 2.5, y: -1.300003}
+  m_AnchorMin: {x: 0.30444446, y: 0.5}
+  m_AnchorMax: {x: 0.6966667, y: 0.6166667}
+  m_AnchoredPosition: {x: -0.49990845, y: -1}
+  m_SizeDelta: {x: 2.5, y: -3.300003}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1549428592
 MonoBehaviour:

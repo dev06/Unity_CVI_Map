@@ -121,7 +121,7 @@ public class UserMove : MonoBehaviour
 
     	UpdateTargetCheckpoints(); 
 
-    	lookingAtNextCheckpoint = Vector3.Angle(transform.position - curWaypoint.transform.position, -transform.forward) < 5; 
+    	lookingAtNextCheckpoint = Vector3.Angle(transform.position - curWaypoint.transform.position, -transform.forward) < 15; 
 
         //not used
         if(lookingAtNextCheckpoint)
