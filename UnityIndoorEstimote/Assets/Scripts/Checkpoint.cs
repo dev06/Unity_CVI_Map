@@ -24,9 +24,9 @@ public class Checkpoint : MonoBehaviour {
     public Notification notification_vibrate;
     public Notification notification_ping;
     public Notification notification_voice;
-    
-	// Use this for initialization
-	void Start () {
+
+    // Use this for initialization
+    void Start () {
         radiusSquared = radius * radius;
         userAvatar = FindObjectOfType<UserAvatar>();
         nextWaypoint = userAvatar.path[0];
@@ -63,10 +63,10 @@ public class Checkpoint : MonoBehaviour {
     //check the player and which notificaiton options are active and send a message
     IEnumerator Check_Notification(Notification notif)
     {
-        while(true)
+        while (true)
         {
             //if the player is in the room && notification is toggled on
-            while(notif.will_notify.isOn)
+            while (notif.will_notify.isOn)
             {
                 yield return new WaitForSecondsRealtime(notif.Notify(distanceOffset, rotationOffset));
             }

@@ -8,13 +8,13 @@ public class DataSaver : MonoBehaviour {
 
 	private int csv_id = 0;
 
-	private static string fileName = (System.DateTime.Now).ToString(); 
+	private static string fileName = (System.DateTime.Now).ToString();
 
 	public static void Save(List<string> lines)
 	{
-		string s = fileName; 
+		string s = fileName;
 
-		s = s.Replace("/", "_"); 
+		s = s.Replace("/", "_");
 
 		f = new FileInfo(Application.persistentDataPath + "\\" + "study-" + s + ".txt");
 
@@ -22,12 +22,12 @@ public class DataSaver : MonoBehaviour {
 
 		w = f.CreateText();
 
-		for(int i = 0;i < lines.Count; i++)
+		for (int i = 0; i < lines.Count; i++)
 		{
-			w.WriteLine(lines[i]); 
+			w.WriteLine(lines[i]);
 		}
 
-		Debug.Log("Data Saved"); 
+		Debug.Log("Data Saved");
 
 		w.Close();
 	}

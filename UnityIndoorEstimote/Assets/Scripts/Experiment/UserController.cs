@@ -1,454 +1,455 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.UI; 
-public class UserController : MonoBehaviour 
+using UnityEngine.UI;
+public class UserController : MonoBehaviour
 {
 
-  public Transform pingTransform; 
-  
-  public GameObject miniCheckpointPrefab; 
+	public Transform pingTransform;
 
-  public float speed = .2f;       
-  
-  public float targetDistance = .5f;  
-  
-  public GameObject targetObj;    
-  
-  public Text isLookingAtTarget; 
+	public GameObject miniCheckpointPrefab;
 
-  public Slider rotationSlider;
-  
-  public Waypoint[] path;
-  
-  private int curwaypointindex = 0;
-  
-  private int nextwaypointindex = 0; 
-  
-  public float user_localRotation;
-  
-  public Slider slider; 
+	public float speed = .2f;
 
-  public Toggle pingToggle, vibrationToggle, voiceToggle; 
-  
-  private Feedback_Voice voice; 
-  
-  private Feedback_Vibrate vibrate; 
-  
-  private bool tutorialOver;
-  
-  private float rotationOffsetValue; 
+	public float targetDistance = .5f;
 
-  private bool chooseNext; 
+	public GameObject targetObj;
 
-  private float keyRot; 
+	public Text isLookingAtTarget;
 
-  private bool lookingAtNextCheckpoint; 
+	public Slider rotationSlider;
 
-  private Quaternion storedRotation; 
+	public Waypoint[] path;
 
-  private bool startMoving; 
+	private int curwaypointindex = 0;
 
-  private float lookingTimer; 
+	private int nextwaypointindex = 0;
 
-  private float movementDelay = .4f; 
+	public float user_localRotation;
 
-  private Waypoint curWaypoint, previousCheckpoint;          
+	public Slider slider;
 
-  private Vector3 targetPos;             
+	public Toggle pingToggle, vibrationToggle, voiceToggle;
 
-  private bool moveWaypoint = true; 
+	private Feedback_Voice voice;
 
-  private bool startIStop; 
-  
-  private Vector3 targetPosition, lastPosition; 
+	private Feedback_Vibrate vibrate;
 
-  private List<string> dataLines = new List<string>(); 
+	private bool tutorialOver;
 
-  private float recordDataTimer; 
+	private float rotationOffsetValue;
 
-  private int csv_id; 
+	private bool chooseNext;
 
+	private float keyRot;
 
-  void Start () {
+	private bool lookingAtNextCheckpoint;
 
-    dataLines.Add("id  ,  timestamp  ,  x  ,  y  ,  direction  ,  feedbacktype  ,  checkpoint"); 
+	private Quaternion storedRotation;
 
-    curwaypointindex = 1;
+	private bool startMoving;
 
-    curWaypoint = path[curwaypointindex]; 
+	private float lookingTimer;
 
-    previousCheckpoint = path[curwaypointindex - 1]; 
+	private float movementDelay = .4f;
 
-    curWaypoint.Show(); 
+	private Waypoint curWaypoint, previousCheckpoint;
 
-    transform.position = path[0].transform.position; 
+	private Vector3 targetPos;
 
-    lastPosition = transform.position; 
+	private bool moveWaypoint = true;
 
-    targetPosition = transform.position; 
+	private bool startIStop;
 
-    targetObj.transform.position = targetPosition;
+	private Vector3 targetPosition, lastPosition;
 
-    targetPos = targetObj.transform.position; 
+	private List<string> dataLines = new List<string>();
 
-    pingTransform.position = curWaypoint.transform.position; 
+	private float recordDataTimer;
 
-    voice = FindObjectOfType<Feedback_Voice>(); 
+	private int csv_id;
 
-    vibrate = FindObjectOfType<Feedback_Vibrate>(); 
 
+	void Start ()
+	{
 
-    ShowPathToNextPoint(); 
+		dataLines.Add("id  ,  timestamp  ,  x  ,  y  ,  direction  ,  feedbacktype  ,  checkpoint");
 
-    StopCoroutine("IUpdateNorthOnDelay"); 
+		curwaypointindex = 1;
 
-    StartCoroutine("IUpdateNorthOnDelay"); 
+		curWaypoint = path[curwaypointindex];
 
-  }
+		previousCheckpoint = path[curwaypointindex - 1];
 
+		curWaypoint.Show();
 
-  void Update()
-  {
-    if(PauseHandler.PAUSE)
-    {
-      return; 
-    }
+		transform.position = path[0].transform.position;
 
-    UpdateKeys();
+		lastPosition = transform.position;
 
-    UpdateRotationOffsetKeys(); 
+		targetPosition = transform.position;
 
-    UpdatePCControls(); 
+		targetObj.transform.position = targetPosition;
 
-    lookingAtNextCheckpoint = Vector3.Angle(transform.position - curWaypoint.transform.position, -transform.forward) < 15; 
+		targetPos = targetObj.transform.position;
 
-    isLookingAtTarget.text = "Looking At Target: " + lookingAtNextCheckpoint; 
+		pingTransform.position = curWaypoint.transform.position;
 
-    if(Input.GetButtonDown("Fire6"))
-    {
-      GetNextCheckpoint(); 
-    }
+		voice = FindObjectOfType<Feedback_Voice>();
 
-    if(Input.GetKeyDown(KeyCode.Y))
-    {
-      GetNextCheckpoint(); 
-    }
+		vibrate = FindObjectOfType<Feedback_Vibrate>();
 
-    //transform.position = Vector3.Lerp(transform.position, targetObj.transform.position, Time.deltaTime * slider.value * speed); 
 
-    transform.position = targetPosition; 
+		ShowPathToNextPoint();
 
-    if(Input.GetButtonDown("North"))
-    {
-      FindObjectOfType<UserRotation>().SetNorth(); 
-    }
+		StopCoroutine("IUpdateNorthOnDelay");
 
-    if(Input.GetButtonDown("NextScene"))
-    {
-      UnityEngine.SceneManagement.SceneManager.LoadScene(0); 
-    }
+		StartCoroutine("IUpdateNorthOnDelay");
 
-    PlayVoice(); 
+	}
 
-    VibrateWatches(); 
 
-    recordDataTimer+=Time.deltaTime; 
+	void Update()
+	{
+		if (PauseHandler.PAUSE)
+		{
+			return;
+		}
 
-    if(recordDataTimer > 1f)
-    {
-      string feedbacktype = "None"; //Ping
+		UpdateKeys();
 
-      if (voiceToggle.isOn)
-      {
-        feedbacktype = "voice";
-      }
-      if (vibrationToggle.isOn)
-      {
-        feedbacktype = "vibrate";
-      }
-      if(pingToggle.isOn)
-      {
-        feedbacktype = "ping"; 
-      }
+		UpdateRotationOffsetKeys();
 
-      dataLines.Add(csv_id + "  ,  " + System.DateTime.Now + "  ,  " + transform.position.x + "  ,  " + transform.position.z + "  ,  " + UserRotation.GetRotation() + "  ,  " + feedbacktype + "  ,  " + curwaypointindex); 
+		UpdatePCControls();
 
-      csv_id++; 
+		lookingAtNextCheckpoint = Vector3.Angle(transform.position - curWaypoint.transform.position, -transform.forward) < 15;
 
-      recordDataTimer = 0; 
-    }
-  }
+		isLookingAtTarget.text = "Looking At Target: " + lookingAtNextCheckpoint;
 
-  private void UpdatePCControls()
-  {
-    if(Input.GetKey(KeyCode.D))
-    {
-      keyRot+=1f; 
-    }
-    else if(Input.GetKey(KeyCode.A))
-    {
-      keyRot-=1f; 
-    }
+		if (Input.GetButtonDown("Fire6"))
+		{
+			GetNextCheckpoint();
+		}
 
-    user_localRotation = UserRotation.GetRotation();
+		if (Input.GetKeyDown(KeyCode.Y))
+		{
+			GetNextCheckpoint();
+		}
 
-    #if UNITY_EDITOR
-    transform.rotation = Quaternion.Euler(0, keyRot, 0); 
-    #else
-    transform.rotation = Quaternion.Euler(0, user_localRotation, 0); 
-    #endif
-  }
+		//transform.position = Vector3.Lerp(transform.position, targetObj.transform.position, Time.deltaTime * slider.value * speed);
 
+		transform.position = targetPosition;
 
+		if (Input.GetButtonDown("North"))
+		{
+			FindObjectOfType<UserRotation>().SetNorth();
+		}
 
-  IEnumerator IUpdateNorthOnDelay()
-  {
-    yield return new WaitForSeconds(.3f); 
-    FindObjectOfType<UserRotation>().SetNorth(); 
-  }
+		if (Input.GetButtonDown("NextScene"))
+		{
+			UnityEngine.SceneManagement.SceneManager.LoadScene(0);
+		}
 
-  public void GetNextCheckpoint()
-  {
-    Vector3 offset = curWaypoint.transform.position - targetPosition;  
+		PlayVoice();
 
-   // targetPosition = targetPosition + (offset * .33f); 
+		//VibrateWatches();
 
-    //Vector3 dist = curWaypoint.transform.position - targetPosition; 
+		recordDataTimer += Time.deltaTime;
 
-    if(offset.sqrMagnitude < targetDistance * 3f)
-    {
-      targetPosition = curWaypoint.transform.position; 
+		if (recordDataTimer > 1f)
+		{
+			string feedbacktype = "None"; //Ping
 
-      SetNextWaypoint(); 
-    }
-    else
-    {
-      offset.Normalize(); 
+			if (voiceToggle.isOn)
+			{
+				feedbacktype = "voice";
+			}
+			if (vibrationToggle.isOn)
+			{
+				feedbacktype = "vibrate";
+			}
+			if (pingToggle.isOn)
+			{
+				feedbacktype = "ping";
+			}
 
-      targetPosition = targetPosition + (offset * targetDistance); 
-    }
+			dataLines.Add(csv_id + "  ,  " + System.DateTime.Now + "  ,  " + transform.position.x + "  ,  " + transform.position.z + "  ,  " + UserRotation.GetRotation() + "  ,  " + feedbacktype + "  ,  " + curwaypointindex);
 
-    targetObj.transform.position = targetPosition; 
-  }
+			csv_id++;
 
-  private void SetNextWaypoint()
-  {
-    curWaypoint.Hide(); 
+			recordDataTimer = 0;
+		}
+	}
 
-    previousCheckpoint = curWaypoint; 
+	private void UpdatePCControls()
+	{
+		if (Input.GetKey(KeyCode.D))
+		{
+			keyRot += 1f;
+		}
+		else if (Input.GetKey(KeyCode.A))
+		{
+			keyRot -= 1f;
+		}
 
-    curwaypointindex++; 
+		user_localRotation = UserRotation.GetRotation();
 
-    if(curwaypointindex > path.Length - 1)
-    {
+#if UNITY_EDITOR
+		transform.rotation = Quaternion.Euler(0, keyRot, 0);
+#else
+		transform.rotation = Quaternion.Euler(0, user_localRotation, 0);
+#endif
+	}
 
-      curwaypointindex = path.Length - 1; 
 
-      Debug.Log("Out of points"); 
 
-      DataSaver.Save(dataLines); 
+	IEnumerator IUpdateNorthOnDelay()
+	{
+		yield return new WaitForSeconds(.3f);
+		FindObjectOfType<UserRotation>().SetNorth();
+	}
 
-      voice.Stop(); 
-    }
+	public void GetNextCheckpoint()
+	{
+		Vector3 offset = curWaypoint.transform.position - targetPosition;
 
-    curWaypoint = path[curwaypointindex]; 
+		// targetPosition = targetPosition + (offset * .33f);
 
-    pingTransform.transform.position = curWaypoint.transform.position; 
+		//Vector3 dist = curWaypoint.transform.position - targetPosition;
 
-    curWaypoint.Show(); 
+		if (offset.sqrMagnitude < targetDistance * 3f)
+		{
+			targetPosition = curWaypoint.transform.position;
 
-    ShowPathToNextPoint(); 
-  }
+			SetNextWaypoint();
+		}
+		else
+		{
+			offset.Normalize();
 
+			targetPosition = targetPosition + (offset * targetDistance);
+		}
 
-  public void ShowPathToNextPoint()
-  {
-    GameObject[] checkpoints = GameObject.FindGameObjectsWithTag("Minicheckpoint"); 
+		targetObj.transform.position = targetPosition;
+	}
 
-    for(int i = 0;i < checkpoints.Length; i++)
-    {
-      Destroy(checkpoints[i]);   
-    }
+	private void SetNextWaypoint()
+	{
+		curWaypoint.Hide();
 
-    for(int i = 0;i < Mathf.Ceil(Vector3.Distance(curWaypoint.transform.position,previousCheckpoint.transform.position) / targetDistance); i++)
-    {
-      GameObject c = Instantiate(miniCheckpointPrefab); 
+		previousCheckpoint = curWaypoint;
 
-      Vector3 pos = curWaypoint.transform.position - previousCheckpoint.transform.position; 
+		curwaypointindex++;
 
-      c.transform.position = previousCheckpoint.transform.position + pos * ((i + .5f) / 5f); 
+		if (curwaypointindex > path.Length - 1)
+		{
 
-      pos.Normalize(); 
+			curwaypointindex = path.Length - 1;
 
-      c.transform.position = previousCheckpoint.transform.position + pos * i * targetDistance; 
-    }
-  }
+			Debug.Log("Out of points");
 
+			DataSaver.Save(dataLines);
 
-  public float GetDistanceToTarget()
-  {
-    return Vector3.Distance(transform.position, curWaypoint.transform.position); 
-  }
+			voice.Stop();
+		}
 
-  float GetDistance(Waypoint w)
-  {
-    return Vector3.Distance(transform.position, w.transform.position); 
-  }
+		curWaypoint = path[curwaypointindex];
 
-  private void PlayVoice()
-  {
-    if(tutorialOver)
-    {
-      voice.Stop(); 
-      return; 
-    }
+		pingTransform.transform.position = curWaypoint.transform.position;
 
-    if(!voice.selected) return; 
+		curWaypoint.Show();
 
-    float angle = GetAngle(); 
+		ShowPathToNextPoint();
+	}
 
-    if(!lookingAtNextCheckpoint)
-    {
 
-      float slightAngle = 65; 
-      StopCoroutine("IStop"); 
-      startIStop = false; 
+	public void ShowPathToNextPoint()
+	{
+		GameObject[] checkpoints = GameObject.FindGameObjectsWithTag("Minicheckpoint");
 
-      if(angle > 0 && angle < slightAngle)
-      {
-        voice.Play(4); 
-      }
-      else if(angle >= 30)
-      {
-        voice.Play(0); 
-      }
+		for (int i = 0; i < checkpoints.Length; i++)
+		{
+			Destroy(checkpoints[i]);
+		}
 
-      if(angle < 0 && angle > -slightAngle)
-      {
-        voice.Play(5); 
-      }
-      else if(angle <=-slightAngle)
-      {
-        voice.Play(1); 
-      }
+		for (int i = 0; i < Mathf.Ceil(Vector3.Distance(curWaypoint.transform.position, previousCheckpoint.transform.position) / targetDistance); i++)
+		{
+			GameObject c = Instantiate(miniCheckpointPrefab);
 
-    }
-    else
-    {
-      if(!startIStop)
-      {
-        StopCoroutine("IStop"); 
-        StartCoroutine("IStop");         
-      }
-    }
-  }
+			Vector3 pos = curWaypoint.transform.position - previousCheckpoint.transform.position;
 
+			c.transform.position = previousCheckpoint.transform.position + pos * ((i + .5f) / 5f);
 
-  IEnumerator IStop()
-  {
-    startIStop = true; 
+			pos.Normalize();
 
-    if(previousCheckpoint != null)
-    {
-      if(GetDistance(previousCheckpoint) < .1f)
-      {
-        voice.Play(3); 
-        yield return new WaitForSeconds(1); 
-      }
-    }
+			c.transform.position = previousCheckpoint.transform.position + pos * i * targetDistance;
+		}
+	}
 
-    while(true)
-    {
-      voice.Play(2); 
 
-      yield return null;
-    }
-  }
+	public float GetDistanceToTarget()
+	{
+		return Vector3.Distance(transform.position, curWaypoint.transform.position);
+	}
 
+	float GetDistance(Waypoint w)
+	{
+		return Vector3.Distance(transform.position, w.transform.position);
+	}
 
-  private void VibrateWatches()
-  {
-    if(tutorialOver)
-    {
-      return; 
-    }
+	private void PlayVoice()
+	{
+		if (tutorialOver)
+		{
+			voice.Stop();
+			return;
+		}
 
-    if(!vibrate.selected) return; 
+		if (!voice.selected) return;
 
-    float angle = GetAngle(); 
+		float angle = GetAngle();
 
-    if(!lookingAtNextCheckpoint)
-    {
-      if(angle >=0)
-      {
-        vibrate.VibrateLeft(); 
-      }
-      else
-      {
-        vibrate.VibrateRight(); 
-      }
-    }
-  }
+		if (!lookingAtNextCheckpoint)
+		{
 
-  private void UpdateRotationOffsetKeys()
-  {
-    if(Input.GetAxis("Horizontal") == 0) return; 
+			float slightAngle = 65;
+			StopCoroutine("IStop");
+			startIStop = false;
 
-    rotationOffsetValue+=Input.GetAxis("Horizontal"); 
+			if (angle > 0 && angle < slightAngle)
+			{
+				voice.Play(4);
+			}
+			else if (angle >= 30)
+			{
+				voice.Play(0);
+			}
 
-    rotationSlider.value = rotationOffsetValue; 
-  }
+			if (angle < 0 && angle > -slightAngle)
+			{
+				voice.Play(5);
+			}
+			else if (angle <= -slightAngle)
+			{
+				voice.Play(1);
+			}
 
-  public float GetAngle()
-  {
-    return Vector3.SignedAngle(transform.position -curWaypoint.transform.position, -transform.forward, Vector3.up); 
-  }
+		}
+		else
+		{
+			if (!startIStop)
+			{
+				StopCoroutine("IStop");
+				StartCoroutine("IStop");
+			}
+		}
+	}
 
-  public void SetNorth()
-  {
-    FindObjectOfType<UserRotation>().SetNorth(); 
-  }
 
-  IEnumerator IReload()
-  {
-    yield return new WaitForSeconds(.5f); 
+	IEnumerator IStop()
+	{
+		startIStop = true;
 
-    UnityEngine.SceneManagement.SceneManager.LoadScene(0); 
-  }
+		if (previousCheckpoint != null)
+		{
+			if (GetDistance(previousCheckpoint) < .1f)
+			{
+				voice.Play(3);
+				yield return new WaitForSeconds(1);
+			}
+		}
 
+		while (true)
+		{
+			voice.Play(2);
 
-  private void UpdateKeys()
-  {
+			yield return null;
+		}
+	}
 
-    if(Input.GetButtonDown("Fire2")) // B
-    {
 
-      voiceToggle.isOn = true; 
+	// private void VibrateWatches()
+	// {
+	//   if (tutorialOver)
+	//   {
+	//     return;
+	//   }
 
-      pingToggle.isOn = false; 
+	//   if (!vibrate.selected) return;
 
-      vibrationToggle.isOn = false; 
-    }
+	//   float angle = GetAngle();
 
-    if(Input.GetButtonDown("Fire1")) // A
-    {
-      voiceToggle.isOn = false; 
-      
-      pingToggle.isOn = true; 
-      
-      vibrationToggle.isOn = false; 
-    }
+	//   if (!lookingAtNextCheckpoint)
+	//   {
+	//     if (angle >= 0)
+	//     {
+	//       vibrate.VibrateLeft();
+	//     }
+	//     else
+	//     {
+	//       vibrate.VibrateRight();
+	//     }
+	//   }
+	// }
 
-    if(Input.GetButtonDown("Fire3")) // A
-    {
-      voiceToggle.isOn = false; 
-      
-      pingToggle.isOn = false; 
-      
-      vibrationToggle.isOn = true; 
-    } 
-  }
+	private void UpdateRotationOffsetKeys()
+	{
+		if (Input.GetAxis("Horizontal") == 0) return;
+
+		rotationOffsetValue += Input.GetAxis("Horizontal");
+
+		rotationSlider.value = rotationOffsetValue;
+	}
+
+	public float GetAngle()
+	{
+		return Vector3.SignedAngle(transform.position - curWaypoint.transform.position, -transform.forward, Vector3.up);
+	}
+
+	public void SetNorth()
+	{
+		FindObjectOfType<UserRotation>().SetNorth();
+	}
+
+	IEnumerator IReload()
+	{
+		yield return new WaitForSeconds(.5f);
+
+		UnityEngine.SceneManagement.SceneManager.LoadScene(0);
+	}
+
+
+	private void UpdateKeys()
+	{
+
+		if (Input.GetButtonDown("Fire2")) // B
+		{
+
+			voiceToggle.isOn = true;
+
+			pingToggle.isOn = false;
+
+			vibrationToggle.isOn = false;
+		}
+
+		if (Input.GetButtonDown("Fire1")) // A
+		{
+			voiceToggle.isOn = false;
+
+			pingToggle.isOn = true;
+
+			vibrationToggle.isOn = false;
+		}
+
+		if (Input.GetButtonDown("Fire3")) // A
+		{
+			voiceToggle.isOn = false;
+
+			pingToggle.isOn = false;
+
+			vibrationToggle.isOn = true;
+		}
+	}
 }
 
 

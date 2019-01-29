@@ -4,79 +4,79 @@ using UnityEngine;
 
 public class Feedback_Voice : FeedbackType {
 
-	
-	public AudioClip[] clips; 
 
-	public AudioSource source; 
+	public AudioClip[] clips;
 
-	private bool startTimer; 
+	public AudioSource source;
 
-	private float timer; 
+	private bool startTimer;
 
-	private int clipID; 
+	private float timer;
 
-	private float play_delay = 1f; 
+	private int clipID;
 
-	private float defVolume; 
+	private float play_delay = 2f;
 
-	void Start () 
+	private float defVolume;
+
+	void Start ()
 	{
-		source.loop = false; 
+		source.loop = false;
 
-		timer = play_delay; 
+		timer = play_delay;
 
-		defVolume = source.volume; 
+		defVolume = source.volume;
 	}
-	
+
 	void Update () {
 
 		selected = toggle.isOn;
 
-		source.volume = PauseHandler.PAUSE ? 0F : defVolume; 
+		source.volume = PauseHandler.PAUSE ? 0F : defVolume;
 
 
-		if(selected == false)
+		if (selected == false)
 		{
-			Stop(); 
-		} 
-
-		if(startTimer)
-		{
-			timer+=Time.deltaTime; 
+			Stop();
 		}
 
-		if(timer > play_delay)
+		if (startTimer)
 		{
-			PlaySource(); 
-			timer = 0; 
+			timer += Time.deltaTime;
+		}
+
+		if (timer > play_delay)
+		{
+			PlaySource();
+			timer = 0;
 		}
 	}
 
 	public void Play(int id)
 	{
-		startTimer = true; 
+		startTimer = true;
 
-		this.clipID = id;  			
+		this.clipID = id;
 	}
 
 	private void PlaySource()
-	{	
-		if(!selected)
+	{
+		if (!selected)
 		{
-			Stop();  
+			Stop();
 		}
-		source.clip = clips[clipID]; 
-		
-		source.Play(); 
-		
+		source.clip = clips[clipID];
+
+		source.Play();
+
 	}
 
 
 
 	public void Stop()
 	{
-		source.Stop(); 
-		startTimer = false; 
+		source.Stop();
+		startTimer = false;
 		timer = 0;
 	}
 }

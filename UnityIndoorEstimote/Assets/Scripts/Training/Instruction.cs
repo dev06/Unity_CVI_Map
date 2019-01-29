@@ -1,11 +1,11 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.UI; 
+using UnityEngine.UI;
 public enum InstructionType
 {
-	None, 
-	Ping, 
+	None,
+	Ping,
 	Voice,
 	Complete,
 	Haptic
@@ -13,77 +13,75 @@ public enum InstructionType
 public class Instruction : MonoBehaviour {
 
 
-	public Text isInstructionPlayingText; 
+	public Text isInstructionPlayingText;
 
-	public AudioClip[] clips; 
+	public AudioClip[] clips;
 
-	private AudioSource source; 
+	private AudioSource source;
 
 	public bool isPlaying;
 
-	void Start () 
+	void Start ()
 	{
 		source = GetComponent<AudioSource>();
 	}
 
 	void Update()
 	{
-		if(PauseHandler.PAUSE) 
-		{			
-			source.Pause(); 
+		if (PauseHandler.PAUSE)
+		{
+			source.Pause();
 		}
 
-		isInstructionPlayingText.text = "Instruction Playing: " + source.isPlaying; 
-
-
+		isInstructionPlayingText.text = "Instruction Playing: " + source.isPlaying;
 	}
 
 	public void PlayInstruction(InstructionType type)
 	{
-		source.Stop(); 
+		source.Stop();
 
-		switch(type)
+		switch (type)
 		{
 			case InstructionType.Ping:
 			{
-				source.clip = clips[0]; 
-				source.Play(); 
-				break; 
+				source.clip = clips[0];
+				source.Play();
+				break;
 			}
 
 			case InstructionType.Voice:
 			{
-				source.clip = clips[1]; 
-				source.Play(); 
-				break; 
+				source.clip = clips[1];
+				source.Play();
+				break;
 			}
-			case InstructionType.Complete: 
+			case InstructionType.Complete:
 			{
-				source.clip = clips[2]; 
-				source.Play(); 
-				break; 
+				source.clip = clips[2];
+				source.Play();
+				break;
 			}
 			case InstructionType.Haptic:
 			{
 				source.clip = clips[3];
-				source.Play(); 
-				break;  
+				source.Play();
+				break;
 			}
 		}
 
-		StopCoroutine("IIsPlaying"); 
-		StartCoroutine("IIsPlaying"); 
+		StopCoroutine("IIsPlaying");
+		StartCoroutine("IIsPlaying");
 	}
 
 	IEnumerator IIsPlaying()
 	{
-		while(source.isPlaying)
+		while (source.isPlaying)
 		{
-			isPlaying = true; 
-			yield return null; 
+			isPlaying = true;
+			yield return null;
 		}
 
-		isPlaying = false; 
+		isPlaying = false;
 
 	}
 }
